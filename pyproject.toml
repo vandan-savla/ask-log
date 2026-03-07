@@ -52,7 +52,6 @@ Issues = "https://github.com/vandan-savla/ask-log/issues"
 openai = ["langchain-openai"]
 anthropic = ["langchain-anthropic"]
 google = ["langchain-google-genai", "langchain-google-vertexai"]
-azure = ["langchain-openai"]
 
 [project.scripts]
 ask-log = "ask_log.cli:main"
