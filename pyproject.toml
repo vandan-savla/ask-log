@@ -5,44 +5,48 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ask-log"
 version = "0.1.0"
-authors = [
-  { name="Vandan Savla", email="vsavla21@gmail.com" },
-]
 description = "An AI log analyzer with chat interface"
 readme = "README.md"
 requires-python = ">=3.10"
+
+authors = [
+  { name = "Vandan Savla", email = "vsavla21@gmail.com" }
+]
+
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "Topic :: Software Development :: Debugging",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Logging",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.13"
 ]
+
 dependencies = [
     "click",
-    "langchain",
-    "langchain-community",
-    "langchain-core",
-    "langchain-huggingface",
-    "pyyaml",
     "rich",
     "prompt-toolkit",
-    "chromadb",
-    "tiktoken",
-    "numpy",
     "questionary",
+    "pyyaml",
+    "numpy",
+    "tiktoken",
+    "chromadb",
     "litellm",
     "fastembed",
+    "langchain",
+    "langchain-core",
+    "langchain-community",
     "langchain-text-splitters",
     "langchain-classic",
+    "langchain-huggingface"
 ]
 
 [project.urls]
 Homepage = "https://github.com/vandan-savla/ask-log"
+Repository = "https://github.com/vandan-savla/ask-log"
+Issues = "https://github.com/vandan-savla/ask-log/issues"
 
 [project.optional-dependencies]
 openai = ["langchain-openai"]
