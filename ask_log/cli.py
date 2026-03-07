@@ -34,7 +34,7 @@ def ensure_configured():
 @click.group()
 @click.version_option(version="0.1.0")
 def main():
-    """Log Whisperer - An AI log analyzer with chat interface"""
+    """Ask Log - An AI log analyzer with chat interface"""
     pass
 
 
@@ -42,7 +42,7 @@ def main():
 def configure():
     """Configure LLM provider settings"""
     console.print(Panel.fit(
-        "[bold blue]Log Whisperer Configuration[/bold blue]",
+        "[bold blue]Ask Log Configuration[/bold blue]",
         border_style="blue"
     ))
     
@@ -221,17 +221,23 @@ def chat(log_file: Path, save: Path):
         
         # After chat ends, optionally save if not provided initially
         if not save and len(analyzer.conversation_history) > 0:
-            if questionary.confirm("Do you want to save this conversation?").ask():
+            if questionary.confirm("Do you want to save this conversation?", auto_enter=False).ask():
+                
                 history_dir = config.config_dir / "history"
                 history_dir.mkdir(parents=True, exist_ok=True)
                 
-                default_name = f"chat_{log_file.stem}_{int(Path(log_file).stat().st_mtime)}.json"
-                default_path = str(history_dir / default_name)
+                save_filename = f"chat_{log_file.stem}_{int(Path(log_file).stat().st_mtime)}.json"
                 
-                save_filename = questionary.path("Enter save path:", default=default_path).ask()
-                
+                save_filename = questionary.text("Enter a filename (e.g., 'analysis_v1'): ").ask()
+                if not save_filename.endswith('.json'):
+                    save_filename += '.json'
+            
+                # Define path: {config_dir}/history/{filename}.json
+                history_dir = config.config_dir / "history"
+                save_path = history_dir / save_filename
+
                 if save_filename:
-                    analyzer.save_path = Path(save_filename)
+                    analyzer.save_path = Path(save_path)
                     analyzer._save_conversation()
                     console.print(f"[green]✓ Conversation saved to: {analyzer.save_path}[/green]")
         

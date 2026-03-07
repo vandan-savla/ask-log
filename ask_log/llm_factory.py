@@ -96,11 +96,7 @@ class LLMFactory:
                 init_params[param] = value
             else:
                 raise ValueError(f"Missing required parameter: {param}")
-        
-        # Add optional parameters if provided
-        for param in provider_info["optional_params"]:
-            if param in config and config[param] is not None:
-                init_params[param] = config[param]
+
         
         # Special handling for different providers
         if provider == "openai":

@@ -1,4 +1,4 @@
-## Contributing to Log Whisperer
+## Contributing to Ask Log
 
 Thank you for considering a contribution! This document outlines how to propose changes and get your development environment set up.
 
@@ -8,8 +8,8 @@ By participating, you agree to uphold a respectful and inclusive environment. Be
 
 ### Getting Started
 
-1) Fork and clone the repo.
-2) Create a virtual environment and install in editable mode:
+1. Fork and clone the repo.
+2. Create a virtual environment and install in editable mode:
 
 ```bash
 python -m venv .venv
@@ -21,7 +21,7 @@ pip install -U pip setuptools wheel
 pip install -e .
 ```
 
-3) Run tests:
+3. Run tests:
 
 ```bash
 pip install -r requirements.txt
@@ -53,6 +53,4 @@ pytest -q
 
 - No PyPI release yet; install locally with `pip install -e .`.
 
-Thanks for helping improve Log Whisperer!
-
-
+Thanks for helping improve Ask Log!

@@ -129,7 +129,7 @@ class LogAnalyzer:
         if self.save_path or not self.conversation_history:
             return
 
-        if click.confirm("\n[bold cyan]? [/bold cyan]Would you like to save this conversation history?"):
+        if click.confirm("\n[bold cyan]> [/bold cyan]Would you like to save this conversation history?"):
             filename = click.prompt("[bold cyan]> [/bold cyan]Enter a filename (e.g., 'analysis_v1')")
             
             # Ensure it has a .json extension
@@ -260,7 +260,7 @@ class LogAnalyzer:
     def start_chat(self):
         """Start the interactive chat session"""
         # Welcome message
-        welcome_msg = f"""🔍 **Welcome to Log Whisperer!**
+        welcome_msg = f"""🔍 **Welcome to Ask Log!**
 
             I'm ready to help you analyze your log file: `{self.log_file_path.name}`
 
@@ -326,8 +326,6 @@ class LogAnalyzer:
                     # Display response
                     self._format_response(ai_response)
                     
-                    # Save conversation
-                    
                 except KeyboardInterrupt:
                     break
                 except EOFError:
@@ -335,10 +333,9 @@ class LogAnalyzer:
                 except Exception as e:
                     console.print(f"\n[red]Error: {e}[/red]")
                     continue
-                finally:
-                    self._handle_exit_save()
                     
         
         finally:
+
             console.print("\n[yellow]Goodbye! Your conversation has been saved.[/yellow]")
-            self._save_conversation()
+            # self._handle_exit_save()
