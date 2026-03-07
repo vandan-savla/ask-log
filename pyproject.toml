@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "log-whisperer"
+version = "0.1.0"
+authors = [
+  { name="Vandan Savla", email="vsavla21@gmail.com" },
+]
+description = "An AI log analyzer with chat interface"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Debugging",
+    "Topic :: System :: Logging",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "click",
+    "langchain",
+    "langchain-community",
+    "langchain-core",
+    "langchain-huggingface",
+    "pyyaml",
+    "rich",
+    "prompt-toolkit",
+    "chromadb",
+    "tiktoken",
+    "numpy",
+    "questionary",
+    "litellm",
+    "fastembed",
+    "langchain-text-splitters",
+    "langchain-classic",
+]
+
+[project.urls]
+Homepage = "https://github.com/vandan-savla/log-whisperer"
+
+[project.optional-dependencies]
+openai = ["langchain-openai"]
+anthropic = ["langchain-anthropic"]
+google = ["langchain-google-genai", "langchain-google-vertexai"]
+azure = ["langchain-openai"]
+
+[project.scripts]
+log-whisperer = "log_whisperer.cli:main"

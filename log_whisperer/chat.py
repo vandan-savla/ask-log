@@ -11,18 +11,16 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
-import rich.spinner
+import rich.spinner   
 from prompt_toolkit import prompt
 from prompt_toolkit.history import FileHistory
-from langchain.schema import BaseMessage
 from langchain_core.messages import HumanMessage, AIMessage
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter 
+from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import FastEmbedEmbeddings
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import create_retrieval_chain
+from langchain_classic.chains.combine_documents import create_stuff_documents_chain
+from langchain_classic.chains.retrieval import create_retrieval_chain
 import hashlib
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories import FileChatMessageHistory
@@ -104,17 +102,17 @@ class LogAnalyzer:
             console.print(f"[yellow]Warning: Could not load previous conversation: {e}[/yellow]")
     
     def _save_conversation(self):
-        """Save conversation to file"""
+        """Save conversation to file (internal or user-specified)"""
         if not self.save_path:
             return
         
         try:
-            # Ensure directory exists
             self.save_path.parent.mkdir(parents=True, exist_ok=True)
             
             data = {
                 'timestamp': datetime.now().isoformat(),
                 'log_file': str(self.log_file_path),
+                'session_id': self.session_id,
                 'conversation': self.conversation_history
             }
             
@@ -124,31 +122,45 @@ class LogAnalyzer:
         except Exception as e:
             console.print(f"[red]Warning: Could not save conversation: {e}[/red]")
     
+    
+    def _handle_exit_save(self):
+        """Prompt user to save if they haven't specified a save path already"""
+        # Only prompt if there is actually a conversation to save
+        if self.save_path or not self.conversation_history:
+            return
+
+        if click.confirm("\n[bold cyan]? [/bold cyan]Would you like to save this conversation history?"):
+            filename = click.prompt("[bold cyan]> [/bold cyan]Enter a filename (e.g., 'analysis_v1')")
+            
+            # Ensure it has a .json extension
+            if not filename.endswith('.json'):
+                filename += '.json'
+            
+            # Define path: {config_dir}/history/{filename}.json
+            history_dir = self.config.config_dir / "history"
+            self.save_path = history_dir / filename
+            
+            # Execute the save
+            self._save_conversation()
+            console.print(f"[green]✓ Conversation saved to: {self.save_path}[/green]")
+            
+            
     def _get_system_instructions(self) -> str:
         """System instructions for the RAG chain (no full log in prompt)."""
-        with open("E:/Codes/AI/log-whisperer/log_whisperer/prompts/system_prompt.txt", "r") as f:
-            return f.read()
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        
+       
+        prompt_path = os.path.join(current_dir, "prompts", "system_prompt.txt")
+        
+        try:
+            with open(prompt_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except FileNotFoundError:
+            return "Default system instructions..."
     
     def _compute_session_id(self) -> str:
         digest = hashlib.sha256(str(self.log_file_path.resolve()).encode("utf-8")).hexdigest()[:12]
         return f"session-{digest}"
-    
-    def _index_cache_dir(self) -> Path:
-        base = self.config.config_dir / "indexes"
-        base.mkdir(parents=True, exist_ok=True)
-        # Fingerprint by file path, size, mtime, and chunking/version params
-        stat = self.log_file_path.stat()
-        finger_str = json.dumps({
-            "path": str(self.log_file_path.resolve()),
-            "size": stat.st_size,
-            "mtime": int(stat.st_mtime),
-            "chunk_size": 2000,
-            "chunk_overlap": 200,
-            "embedding": "fastembed-bge-small-en-v1.5",
-            "version": 1,
-        }, sort_keys=True)
-        digest = hashlib.sha256(finger_str.encode("utf-8")).hexdigest()[:16]
-        return base / digest
 
     def _messages_store_path(self) -> Path:
         base = self.config.config_dir / "messages"
@@ -158,34 +170,36 @@ class LogAnalyzer:
     def _get_chat_history(self, session_id: str) -> FileChatMessageHistory:
         # Single-session per log file. Persist messages for agent memory only.
         return FileChatMessageHistory(str(self._messages_store_path()))
-
+    
     def _initialize_rag(self, force_rebuild: bool = False) -> None:
         """Create or load a vector store retriever and retrieval chain over the log file.
 
-        Lazy + cached: load FAISS if available, else build and persist.
+        Uses in-memory Chroma with FastEmbed for maximum efficiency and MMR for varied context.
         """
         with console.status("[yellow] Retrieving Embeddings...[/yellow]", spinner="material"):
 
             try:
-                # console.print("[yellow] Retrieving Embeddings...[/yellow]")
-                cache_dir = self._index_cache_dir()
-                # embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
-                embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
+                embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
 
-                if cache_dir.exists() and not force_rebuild:
-                    vector_store = FAISS.load_local(
-                        str(cache_dir), embeddings, allow_dangerous_deserialization=True
-                    )
-                else:
-                    splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200, add_start_index=True)
+                splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200, add_start_index=True)
 
-                    documents = splitter.create_documents(
-                        [self.log_content], metadatas=[{"source": str(self.log_file_path)}]
-                    )
-                    vector_store = FAISS.from_documents(documents, embeddings)
-                    vector_store.save_local(str(cache_dir))
+                documents = splitter.create_documents(
+                    [self.log_content], metadatas=[{"source": str(self.log_file_path)}]
+                )
+                
+                # Use ephemeral in-memory Chroma vector store
+                vector_store = Chroma.from_documents(documents, embeddings)
 
-                self.retriever = vector_store.as_retriever(search_kwargs={"k": 6})
+                # Silence ChromaDB warning when number of chunks is less than fetch_k
+                doc_count = len(documents)
+                fetch_k = min(20, doc_count)
+                k = min(6, doc_count)
+
+                # Use MMR constraint for diverse chunk selection
+                self.retriever = vector_store.as_retriever(
+                    search_type="mmr" if doc_count > 0 else "similarity", 
+                    search_kwargs={"k": k, "fetch_k": fetch_k}
+                )
 
                 # Prompt and retrieval chain with persisted chat history
                 prompt = ChatPromptTemplate.from_messages([
@@ -313,7 +327,6 @@ class LogAnalyzer:
                     self._format_response(ai_response)
                     
                     # Save conversation
-                    self._save_conversation()
                     
                 except KeyboardInterrupt:
                     break
@@ -322,6 +335,9 @@ class LogAnalyzer:
                 except Exception as e:
                     console.print(f"\n[red]Error: {e}[/red]")
                     continue
+                finally:
+                    self._handle_exit_save()
+                    
         
         finally:
             console.print("\n[yellow]Goodbye! Your conversation has been saved.[/yellow]")

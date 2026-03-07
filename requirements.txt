@@ -7,8 +7,11 @@ pyyaml
 rich
 prompt-toolkit
 chromadb
-sentence-transformers
 tiktoken
-faiss-cpu
 numpy
 pytest
+questionary
+litellm
+fastembed
+langchain-text-splitters
+langchain-classic

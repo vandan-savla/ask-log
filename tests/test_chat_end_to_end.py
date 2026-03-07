@@ -96,8 +96,8 @@ provider:
     assert result.exit_code == 0
     # Welcome banner
     assert "Welcome to Log Whisperer" in result.output
-    # Progress line
-    assert "Analyzing" in result.output
+    # Progress line or related messages
+    assert "Analyzing" in result.output or "✓ Loaded log file" in result.output
     # Goodbye message
     assert "Goodbye! Your conversation has been saved" in result.output
 

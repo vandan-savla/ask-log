@@ -67,10 +67,16 @@ SUPPORTED_PROVIDERS = {
         "required_params": ["api_key"],
         "optional_params": ["temperature", "max_tokens", "top_p"]
     },
-    "google": {
+    "google-genai": {
         "package": "langchain-google-genai", 
         "class": "ChatGoogleGenerativeAI",
         "required_params": ["google_api_key"],
+        "optional_params": ["temperature", "max_output_tokens", "top_p"]
+    },
+    "google-vertexai": {
+        "package": "langchain-google-vertexai", 
+        "class": "ChatVertexAI",
+        "required_params": ["project", "location"],
         "optional_params": ["temperature", "max_output_tokens", "top_p"]
     },
     "groq": {

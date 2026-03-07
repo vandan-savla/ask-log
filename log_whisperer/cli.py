@@ -2,10 +2,13 @@
 Command Line Interface for log-whisperer
 """
 import click
+import sys
 from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
+import questionary
+from questionary import Choice
 
 from .config import Config, list_supported_providers, get_provider_info
 from .llm_factory import llm_factory
@@ -13,6 +16,20 @@ from .chat import LogAnalyzer
 
 console = Console()
 
+def ensure_configured():
+    """
+    Checks for configuration. If missing, prints an error 
+    and exits the current process immediately.
+    """
+    config = Config()
+    if not config.get_provider_config():
+        console.print(Panel(
+            "[bold red]Error: System Not Configured[/bold red]\n\n"
+            "You must run [cyan]log-whisperer configure[/cyan] before using this command.",
+            title="Access Denied",
+            border_style="red"
+        ))
+        sys.exit(1)  # Exit with error code to stay in the same terminal
 
 @click.group()
 @click.version_option(version="0.1.0")
@@ -52,30 +69,91 @@ def configure():
     console.print(table)
     
     # Get provider choice
-    provider = click.prompt(
-        "\nSelect LLM provider", 
-        type=click.Choice(providers, case_sensitive=False),
-        show_choices=False
-    ).lower()
+    provider_choices = [
+        Choice("OpenAI", "openai"),
+        Choice("Anthropic", "anthropic"),
+        Choice("Google AI Studio (Gemini)", "google-genai"),
+        Choice("Google Vertex AI", "google-vertexai"),
+        Choice("Groq", "groq")
+    ]
     
+    provider = questionary.select(
+        "Select LLM provider:",
+        choices=provider_choices,
+        use_indicator=True,
+    ).ask()
+    
+    if not provider:
+        console.print("\n[yellow]Configuration cancelled.[/yellow]")
+        return
+        
     provider_info = get_provider_info(provider)
     
-    # Get model name
+    # Get model name using litellm dynamically if available
     console.print(f"\n[bold]Configuring {provider.title()} provider[/bold]")
     
-    # Suggest common models based on provider
-    model_suggestions = {
-        "openai": "gpt-3.5-turbo, gpt-4, gpt-4-turbo, etc",
-        "anthropic": "claude-3-sonnet-20240229, claude-3-haiku-20240307, etc",
-        "google": "gemini-pro, gemini-pro-vision, etc",
-        "groq": "llama3-8b-8192, llama3-70b-8192, etc"
-    }
+    try:
+        from litellm import models_by_provider
+        
+        # map our provider ids to litellm provider prefixes
+        litellm_provider_map = {
+            "openai": "openai",
+            "anthropic": "anthropic",
+            "google-genai": "gemini",
+            "google-vertexai": "vertex_ai",
+            "groq": "groq"
+        }
+        
+        litellm_provider = litellm_provider_map.get(provider, provider)
+        raw_models = models_by_provider.get(litellm_provider, [])
+        # Strip the litellm provider prefix (e.g. 'gemini/' -> '') for LangChain compatibility
+        dynamic_models = []
+        for m in raw_models:
+            clean_m = m.split("/")[-1] if "/" in m else m
+            if clean_m not in dynamic_models:
+                dynamic_models.append(clean_m)
+        
+    except ImportError:
+        dynamic_models = []
     
-    if provider in model_suggestions:
-        console.print(f"[dim]Popular models: {model_suggestions[provider]}[/dim]")
-    
-    model = click.prompt("Model name")
-    
+    # If dynamic models were found, offer them as a choice along with Manual Entry
+    if dynamic_models:
+        model_choices = [Choice(m, m) for m in dynamic_models[:50]] # Limit to 50
+        model_choices.append(Choice("Enter manually...", "MANUAL"))
+        
+        model_selection = questionary.select(
+            "Select model:",
+            choices=model_choices,
+            use_indicator=True
+        ).ask()
+        
+        if not model_selection:
+            console.print("\n[yellow]Configuration cancelled.[/yellow]")
+            return
+            
+        if model_selection == "MANUAL":
+            model = questionary.text("Enter model name:").ask()
+        else:
+            model = model_selection
+    else:
+        # Fallback to pure text input if litellm fails or returns empty list
+        model_suggestions = {
+            "openai": "gpt-3.5-turbo, gpt-4, gpt-4-turbo, gpt-4o, gpt-4o-mini",
+            "anthropic": "claude-3-5-sonnet-20240620, claude-3-opus-20240229",
+            "google-genai": "gemini-1.5-pro, gemini-1.5-flash",
+            "google-vertexai": "gemini-1.5-pro, gemini-1.5-flash",
+            "groq": "llama3-8b-8192, llama3-70b-8192"
+        }
+        
+        if provider in model_suggestions:
+            console.print(f"[dim]Popular models: {model_suggestions[provider]}[/dim]")
+            
+        model = questionary.text("Enter model name:").ask()
+        
+    if not model:
+        console.print("\n[yellow]Configuration cancelled.[/yellow]")
+        return
+        
     # Collect configuration
     provider_config = {
         "provider": provider,
@@ -84,41 +162,40 @@ def configure():
     
     # Get required parameters
     for param in provider_info["required_params"]:
-        if param.endswith("_key") or param.endswith("_token"):
-            value = click.prompt(f"{param.replace('_', ' ').title()}", hide_input=True)
+        is_secret = param.endswith("_key") or param.endswith("_token")
+        
+        if is_secret:
+            value = questionary.password(f"{param.replace('_', ' ').title()}:").ask()
         else:
-            value = click.prompt(f"{param.replace('_', ' ').title()}")
+            value = questionary.text(f"{param.replace('_', ' ').title()}:").ask()
+            
+        if value is None:
+            console.print("\n[yellow]Configuration cancelled.[/yellow]")
+            return
+            
         provider_config[param] = value
     
     # Get optional parameters
-    console.print("\n[bold]Optional Parameters (press Enter to skip):[/bold]")
+    console.print("\n[bold]Optional Parameters (leave blank to skip):[/bold]")
     for param in provider_info["optional_params"]:
         try:
             if param in ["temperature"]:
-                # Use string input first, then convert if not empty
-                value_str = click.prompt(
-                    f"{param.replace('_', ' ').title()} (0.0-1.0)",
-                    default="",
-                    show_default=False
-                )
-                if value_str.strip():  # Only convert if not empty
+                value_str = questionary.text(f"{param.replace('_', ' ').title()} (0.0-1.0):").ask()
+                if value_str is None: return
+                if value_str.strip():
                     try:
                         value = float(value_str)
-                        if 0.0 <= value <= 1.0:
+                        if 0.0 <= value <= 2.0:
                             provider_config[param] = value
                         else:
-                            console.print(f"[yellow]Temperature must be between 0.0 and 1.0, skipping {param}...[/yellow]")
+                            console.print(f"[yellow]Temperature must be between 0.0 and 2.0, skipping {param}...[/yellow]")
                     except ValueError:
                         console.print(f"[yellow]Invalid temperature value, skipping {param}...[/yellow]")
                         
             elif param in ["max_tokens", "max_output_tokens", "max_new_tokens", "num_predict"]:
-                # Use string input first, then convert if not empty
-                value_str = click.prompt(
-                    f"{param.replace('_', ' ').title()}",
-                    default="",
-                    show_default=False
-                )
-                if value_str.strip():  # Only convert if not empty
+                value_str = questionary.text(f"{param.replace('_', ' ').title()}:").ask()
+                if value_str is None: return
+                if value_str.strip():
                     try:
                         value = int(value_str)
                         if value > 0:
@@ -129,13 +206,9 @@ def configure():
                         console.print(f"[yellow]Invalid integer value, skipping {param}...[/yellow]")
                         
             elif param in ["top_p", "p"]:
-                # Use string input first, then convert if not empty
-                value_str = click.prompt(
-                    f"{param.replace('_', ' ').title()} (0.0-1.0)",
-                    default="",
-                    show_default=False
-                )
-                if value_str.strip():  # Only convert if not empty
+                value_str = questionary.text(f"{param.replace('_', ' ').title()} (0.0-1.0):").ask()
+                if value_str is None: return
+                if value_str.strip():
                     try:
                         value = float(value_str)
                         if 0.0 <= value <= 1.0:
@@ -144,23 +217,16 @@ def configure():
                             console.print(f"[yellow]{param} must be between 0.0 and 1.0, skipping...[/yellow]")
                     except ValueError:
                         console.print(f"[yellow]Invalid {param} value, skipping...[/yellow]")
-                        
             else:
-                # For other string parameters
-                value = click.prompt(
-                    f"{param.replace('_', ' ').title()}",
-                    default="",
-                    show_default=False
-                )
-                if value.strip():  # Only add if not empty
+                value = questionary.text(f"{param.replace('_', ' ').title()}:").ask()
+                if value is None: return
+                if value.strip():
                     provider_config[param] = value
                 
         except click.Abort:
-            # User pressed Ctrl+C, exit gracefully
             console.print("\n[yellow]Configuration cancelled.[/yellow]")
             return
         except click.BadParameter:
-            # Invalid input, skip this parameter
             console.print(f"[yellow]Invalid input for {param}, skipping...[/yellow]")
             continue
     
@@ -193,11 +259,13 @@ def configure():
 @click.option(
     "--save",
     type=click.Path(path_type=Path),
-    help="Path to save the conversation (optional)"
+    is_eager=False,
+    help="Path to save the conversation and resuse the same chat session later. Can be used to have past context in later conversations."
 )
 def chat(log_file: Path, save: Path):
     """Start interactive chat session for log analysis"""
     try:
+        ensure_configured()
         # Check if configuration exists
         config = Config()
         provider_config = config.get_provider_config()
@@ -210,6 +278,22 @@ def chat(log_file: Path, save: Path):
         analyzer = LogAnalyzer(str(log_file), str(save) if save else None)
         analyzer.start_chat()
         
+        # After chat ends, optionally save if not provided initially
+        if not save and len(analyzer.conversation_history) > 0:
+            if questionary.confirm("Do you want to save this conversation?").ask():
+                history_dir = config.config_dir / "history"
+                history_dir.mkdir(parents=True, exist_ok=True)
+                
+                default_name = f"chat_{log_file.stem}_{int(Path(log_file).stat().st_mtime)}.json"
+                default_path = str(history_dir / default_name)
+                
+                save_filename = questionary.path("Enter save path:", default=default_path).ask()
+                
+                if save_filename:
+                    analyzer.save_path = Path(save_filename)
+                    analyzer._save_conversation()
+                    console.print(f"[green]✓ Conversation saved to: {analyzer.save_path}[/green]")
+        
     except Exception as e:
         console.print(f"[red]✗ Error starting chat: {e}[/red]")
 
@@ -217,6 +301,7 @@ def chat(log_file: Path, save: Path):
 @main.command()
 def status():
     """Show current configuration status"""
+    ensure_configured()
     config = Config()
     provider_config = config.get_provider_config()
     
