@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ask-log"
-version = "0.1.0"
+version = "1.0.0a1"
 description = "An AI log analyzer with chat interface"
 readme = "README.md"
 requires-python = ">=3.12"
