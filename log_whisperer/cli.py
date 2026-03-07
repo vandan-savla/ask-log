@@ -58,7 +58,8 @@ def configure():
     provider_descriptions = {
         "openai": "OpenAI GPT models (GPT-3.5, GPT-4, etc.)",
         "anthropic": "Anthropic Claude models",
-        "google": "Google Gemini models",
+        "google-genai": "Google Gemini models",
+        "google-vertexai": "Google Vertex AI models",
     }
     
     for provider in providers:
@@ -171,62 +172,6 @@ def configure():
             
         provider_config[param] = value
     
-    # Get optional parameters
-    console.print("\n[bold]Optional Parameters (leave blank to skip):[/bold]")
-    for param in provider_info["optional_params"]:
-        try:
-            if param in ["temperature"]:
-                value_str = questionary.text(f"{param.replace('_', ' ').title()} (0.0-1.0):").ask()
-                if value_str is None: return
-                if value_str.strip():
-                    try:
-                        value = float(value_str)
-                        if 0.0 <= value <= 2.0:
-                            provider_config[param] = value
-                        else:
-                            console.print(f"[yellow]Temperature must be between 0.0 and 2.0, skipping {param}...[/yellow]")
-                    except ValueError:
-                        console.print(f"[yellow]Invalid temperature value, skipping {param}...[/yellow]")
-                        
-            elif param in ["max_tokens", "max_output_tokens", "max_new_tokens", "num_predict"]:
-                value_str = questionary.text(f"{param.replace('_', ' ').title()}:").ask()
-                if value_str is None: return
-                if value_str.strip():
-                    try:
-                        value = int(value_str)
-                        if value > 0:
-                            provider_config[param] = value
-                        else:
-                            console.print(f"[yellow]{param} must be positive, skipping...[/yellow]")
-                    except ValueError:
-                        console.print(f"[yellow]Invalid integer value, skipping {param}...[/yellow]")
-                        
-            elif param in ["top_p", "p"]:
-                value_str = questionary.text(f"{param.replace('_', ' ').title()} (0.0-1.0):").ask()
-                if value_str is None: return
-                if value_str.strip():
-                    try:
-                        value = float(value_str)
-                        if 0.0 <= value <= 1.0:
-                            provider_config[param] = value
-                        else:
-                            console.print(f"[yellow]{param} must be between 0.0 and 1.0, skipping...[/yellow]")
-                    except ValueError:
-                        console.print(f"[yellow]Invalid {param} value, skipping...[/yellow]")
-            else:
-                value = questionary.text(f"{param.replace('_', ' ').title()}:").ask()
-                if value is None: return
-                if value.strip():
-                    provider_config[param] = value
-                
-        except click.Abort:
-            console.print("\n[yellow]Configuration cancelled.[/yellow]")
-            return
-        except click.BadParameter:
-            console.print(f"[yellow]Invalid input for {param}, skipping...[/yellow]")
-            continue
-    
-
     # Test the configuration
     console.print("\n[yellow]Testing configuration...[/yellow]")
     try:
