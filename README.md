@@ -5,10 +5,9 @@
 [![OS](https://img.shields.io/badge/OS-Windows%20|%20macOS%20|%20Linux-555)](#)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-
 Log Whisperer is a CLI-first assistant that helps you explore, summarize, and reason about application logs through a conversational interface. Point it at a log file, ask questions, and iterate quickly.
 
-This project uses LangChain under the hood and supports multiple LLM providers (OpenAI, Anthropic, Google, Groq), configurable via a simple guided setup. Conversations are optionally saved so you can resume later.
+This project uses LangChain under the hood and supports multiple LLM providers (OpenAI, Anthropic, Google), configurable via a simple guided setup. Conversations are optionally saved so you can resume later.
 
 ---
 
@@ -20,24 +19,17 @@ This project uses LangChain under the hood and supports multiple LLM providers (
 
 ### Demo
 
-
-
 https://github.com/user-attachments/assets/3b821b07-9789-467f-a538-21988ff254e9
-
-
-
-
 
 > Tip: Add your own screenshots or GIFs later under `docs/assets/` and replace the placeholders below.
 
-
---- 
+---
 
 ### Features
 
 - Conversational log analysis over any text log
 - Local vector index (FAISS) for retrieval-augmented answers
-- Provider-agnostic via LangChain: OpenAI, Anthropic, Google Gemini, Groq
+- Provider-agnostic via LangChain: OpenAI, Anthropic, Google Gemini
 - Persistent conversation history per-log for continuity
 - Colorful, ergonomic CLI using `rich` and `click`
 
@@ -97,11 +89,12 @@ log-whisperer status
 log-whisperer chat --log-file /path/to/app.log --save ~/.log-whisperer/last-session.json
 ```
 
-During configuration, you’ll be prompted for provider credentials and model. Supported providers are: 
+During configuration, you’ll be prompted for provider credentials and model. Supported providers are:
+
 - OpenAI: `OPENAI_API_KEY`
 - Anthropic: `ANTHROPIC_API_KEY`
 - Google: `GOOGLE_API_KEY`
-- Groq: `GROQ_API_KEY`
+
 ---
 
 ## Commands
@@ -140,15 +133,4 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-## Acknowledgements
-
-- Built with `click`, `rich`, and `LangChain`
-- FAISS for local vector search; `sentence-transformers` for embeddings
-
----
-
-
+## This project is licensed under the [MIT License](LICENSE).

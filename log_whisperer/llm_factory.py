@@ -81,7 +81,7 @@ class LLMFactory:
             "anthropic": {"api_key": "ANTHROPIC_API_KEY"},
             "google-genai": {"google_api_key": "GOOGLE_API_KEY"},
             "google-vertexai": {"project": "GOOGLE_CLOUD_PROJECT", "location": "GOOGLE_CLOUD_LOCATION"},
-            "groq": {"groq_api_key": "GROQ_API_KEY"},
+
         }
 
         # Add required parameters with env var fallback (no secrets printed)

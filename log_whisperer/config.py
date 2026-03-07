@@ -78,12 +78,6 @@ SUPPORTED_PROVIDERS = {
         "class": "ChatVertexAI",
         "required_params": ["project", "location"],
         "optional_params": ["temperature", "max_output_tokens", "top_p"]
-    },
-    "groq": {
-        "package": "langchain-groq", 
-        "class": "ChatGroq",
-        "required_params": ["groq_api_key"],
-        "optional_params": ["temperature", "max_tokens", "top_p"]
     }
 }
 

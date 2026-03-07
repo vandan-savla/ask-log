@@ -59,7 +59,6 @@ def configure():
         "openai": "OpenAI GPT models (GPT-3.5, GPT-4, etc.)",
         "anthropic": "Anthropic Claude models",
         "google": "Google Gemini models",
-        "groq": "Groq models"
     }
     
     for provider in providers:
@@ -74,7 +73,6 @@ def configure():
         Choice("Anthropic", "anthropic"),
         Choice("Google AI Studio (Gemini)", "google-genai"),
         Choice("Google Vertex AI", "google-vertexai"),
-        Choice("Groq", "groq")
     ]
     
     provider = questionary.select(
@@ -101,7 +99,6 @@ def configure():
             "anthropic": "anthropic",
             "google-genai": "gemini",
             "google-vertexai": "vertex_ai",
-            "groq": "groq"
         }
         
         litellm_provider = litellm_provider_map.get(provider, provider)
@@ -142,7 +139,6 @@ def configure():
             "anthropic": "claude-3-5-sonnet-20240620, claude-3-opus-20240229",
             "google-genai": "gemini-1.5-pro, gemini-1.5-flash",
             "google-vertexai": "gemini-1.5-pro, gemini-1.5-flash",
-            "groq": "llama3-8b-8192, llama3-70b-8192"
         }
         
         if provider in model_suggestions:
