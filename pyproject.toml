@@ -7,7 +7,7 @@ name = "ask-log"
 version = "0.1.0"
 description = "An AI log analyzer with chat interface"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 
 authors = [
   { name = "Vandan Savla", email = "vsavla21@gmail.com" }
