@@ -17,14 +17,6 @@ This project uses LangChain under the hood and supports multiple LLM providers (
 
 ---
 
-### Demo
-
-https://github.com/user-attachments/assets/3b821b07-9789-467f-a538-21988ff254e9
-
-> Tip: Add your own screenshots or GIFs later under `docs/assets/` and replace the placeholders below.
-
----
-
 ### Features
 
 - Conversational log analysis over any text log
