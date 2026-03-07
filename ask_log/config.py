@@ -1,5 +1,5 @@
 """
-Configuration management for log-whisperer
+Configuration management for ask-log
 """
 import os
 import yaml
@@ -9,10 +9,10 @@ import click
 
 
 class Config:
-    """Manages configuration for log-whisperer"""
+    """Manages configuration for ask-log"""
     
     def __init__(self):
-        self.config_dir = Path.home() / ".log-whisperer"
+        self.config_dir = Path.home() / ".ask-log"
         self.config_file = self.config_dir / "config.yaml"
         self.ensure_config_dir()
     

@@ -73,7 +73,7 @@ class LogAnalyzer:
         """Initialize the LLM from configuration"""
         provider_config = self.config.get_provider_config()
         if not provider_config:
-            raise ValueError("No LLM provider configured. Please run 'log-whisperer configure' first.")
+            raise ValueError("No LLM provider configured. Please run 'ask-log configure' first.")
         
         try:
             self.llm = llm_factory.create_llm(

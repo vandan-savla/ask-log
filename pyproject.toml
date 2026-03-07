@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "log-whisperer"
+name = "ask-log"
 version = "0.1.0"
 authors = [
   { name="Vandan Savla", email="vsavla21@gmail.com" },
@@ -42,7 +42,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/vandan-savla/log-whisperer"
+Homepage = "https://github.com/vandan-savla/ask-log"
 
 [project.optional-dependencies]
 openai = ["langchain-openai"]
@@ -51,4 +51,4 @@ google = ["langchain-google-genai", "langchain-google-vertexai"]
 azure = ["langchain-openai"]
 
 [project.scripts]
-log-whisperer = "log_whisperer.cli:main"
+ask-log = "ask_log.cli:main"

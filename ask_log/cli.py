@@ -1,5 +1,5 @@
 """
-Command Line Interface for log-whisperer
+Command Line Interface for ask-log
 """
 import click
 import sys
@@ -25,7 +25,7 @@ def ensure_configured():
     if not config.get_provider_config():
         console.print(Panel(
             "[bold red]Error: System Not Configured[/bold red]\n\n"
-            "You must run [cyan]log-whisperer configure[/cyan] before using this command.",
+            "You must run [cyan]ask-log configure[/cyan] before using this command.",
             title="Access Denied",
             border_style="red"
         ))
@@ -212,7 +212,7 @@ def chat(log_file: Path, save: Path):
         provider_config = config.get_provider_config()
         if not provider_config:
             console.print("[red]✗ No LLM provider configured.[/red]")
-            console.print("Please run '[cyan]log-whisperer configure[/cyan]' first.")
+            console.print("Please run '[cyan]ask-log configure[/cyan]' first.")
             return
         
         # Initialize and start chat
@@ -248,7 +248,7 @@ def status():
     
     if not provider_config:
         console.print("[yellow]No LLM provider configured.[/yellow]")
-        console.print("Run '[cyan]log-whisperer configure[/cyan]' to set up a provider.")
+        console.print("Run '[cyan]ask-log configure[/cyan]' to set up a provider.")
         return
     
     # Display current configuration
@@ -281,7 +281,7 @@ def reset():
         try:
             config.config_file.unlink(missing_ok=True)
             console.print("[green]✓ Configuration reset successfully. [/green]")
-            console.print("[yellow]Reconfigure using log-whisperer configure[/yellow]")
+            console.print("[yellow]Reconfigure using ask-log configure[/yellow]")
         except Exception as e:
             console.print(f"[red]✗ Error resetting configuration: {e}[/red]")
 

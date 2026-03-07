@@ -42,8 +42,8 @@ No PyPI release yet. Install locally in editable mode for fast iteration.
 #### 1) Clone
 
 ```bash
-git clone https://github.com/vandan-savla/log-whisperer.git
-cd log-whisperer
+git clone https://github.com/vandan-savla/ask-log.git
+cd ask-log
 ```
 
 #### 2) Create and activate a virtual environment
@@ -76,17 +76,17 @@ pip install -e .
 
 ## Quickstart
 
-Once installed, the `log-whisperer` command is available.
+Once installed, the `ask-log` command is available.
 
 ```bash
 # 1) Configure your preferred provider and model
-log-whisperer configure
+ask-log configure
 
 # 2) Check configuration
-log-whisperer status
+ask-log status
 
 # 3) Analyze a log file interactively; optionally save the conversation
-log-whisperer chat --log-file /path/to/app.log --save ~/.log-whisperer/last-session.json
+ask-log chat --log-file /path/to/app.log --save ~/.ask-log/last-session.json
 ```
 
 During configuration, you’ll be prompted for provider credentials and model. Supported providers are:
@@ -101,19 +101,19 @@ During configuration, you’ll be prompted for provider credentials and model. S
 
 ```bash
 # Guided config flow (choose provider, model, and options)
-log-whisperer configure
+ask-log configure
 
 # Show current provider configuration
-log-whisperer status
+ask-log status
 
 # Start an interactive session on a specific log file
-log-whisperer chat --log-file /path/to/logfile.log --save path/to/convo.json
+ask-log chat --log-file /path/to/logfile.log --save path/to/convo.json
 
-# Reset configuration (removes ~/.log-whisperer/config.yaml)
-log-whisperer reset
+# Reset configuration (removes ~/.ask-log/config.yaml)
+ask-log reset
 ```
 
-Configuration is stored at `~/.log-whisperer/config.yaml`.
+Configuration is stored at `~/.ask-log/config.yaml`.
 
 ---
 
