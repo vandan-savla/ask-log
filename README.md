@@ -13,7 +13,8 @@ This project uses LangChain under the hood and supports multiple LLM providers (
 
 ### Quick links
 
-[(https://img.shields.io/badge/py-package-brightgreen?label=PyPI%20package&link=https%3A%2F%2Fpypi.org%2Fproject%2Fask-log%2F)](#-PYPI)
+![Static Badge](https://img.shields.io/badge/py-package-brightgreen?label=PyPI%20package&link=https%3A%2F%2Fpypi.org%2Fproject%2Fask-log%2F)
+
 
 ---
 
