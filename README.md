@@ -13,7 +13,8 @@ This project uses LangChain under the hood and supports multiple LLM providers (
 
 ### Quick links
 
-[![Configure](https://img.shields.io/badge/Step%201-Configure-blue?logo=terminal)](#-configuration) [![Start Chat](https://img.shields.io/badge/Step%202-Start%20Chat-green?logo=gnu-bash)](#-quickstart) [![Status](https://img.shields.io/badge/Status-Check-informational?logo=gnometerminal)](#-commands)
+[![Package](![Static Badge](https://img.shields.io/badge/py-package-brightgreen?label=PyPI%20package&link=https%3A%2F%2Fpypi.org%2Fproject%2Fask-log%2F)
+)](#-PYPI)
 
 ---
 
@@ -27,41 +28,10 @@ This project uses LangChain under the hood and supports multiple LLM providers (
 
 ---
 
-## Installation (local, editable)
-
-No PyPI release yet. Install locally in editable mode for fast iteration.
-
-#### 1) Clone
+## Installation
 
 ```bash
-git clone https://github.com/vandan-savla/ask-log.git
-cd ask-log
-```
-
-#### 2) Create and activate a virtual environment
-
-- Windows (PowerShell)
-
-```powershell
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -U pip setuptools wheel
-```
-
-- macOS/Linux (bash)
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -U pip setuptools wheel
-```
-
-#### 3) Install the project in editable mode
-
-Core installation:
-
-```bash
-pip install -e .
+pip install ask-log
 ```
 
 ---
