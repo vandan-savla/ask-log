@@ -48,7 +48,7 @@ ask-log configure
 ask-log status
 
 # 3) Analyze a log file interactively; optionally save the conversation
-ask-log chat --log-file /path/to/app.log --save ~/.ask-log/last-session.json
+ask-log chat --log-file /path/to/app.log --save last-session
 ```
 
 During configuration, you’ll be prompted for provider credentials and model. Supported providers are:
@@ -69,20 +69,21 @@ ask-log configure
 ask-log status
 
 # Start an interactive session on a specific log file
-ask-log chat --log-file /path/to/logfile.log --save path/to/convo.json
+ask-log chat --log-file /path/to/logfile.log --save convo
 
 # Reset configuration (removes ~/.ask-log/config.yaml)
 ask-log reset
 ```
 
 Configuration is stored at `~/.ask-log/config.yaml`.
+Saved conversation transcripts are stored in `~/.ask-log/history/`. The `--save` value is treated as a filename; if you provide a path, only its filename is used. Existing transcripts with that filename are loaded and updated when the chat ends.
 
 ---
 
 ## Tips
 
 - Use natural language questions like “What errors do you see?”, “Summarize main events”, “Any anomalies around 10:32?”
-- Use `--save` to capture the conversation so you can resume context later.
+- Use `--save` to capture the conversation in `~/.ask-log/history/` so you can resume it later.
 - The first run on a large log may build a local vector index; subsequent runs will be faster.
 
 ---

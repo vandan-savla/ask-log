@@ -16,6 +16,17 @@ from .chat import LogAnalyzer
 
 console = Console()
 
+
+def _history_save_path(config: Config, filename: Path) -> Path:
+    """Resolve a transcript filename inside the history directory."""
+    name = filename.name
+    if not name or name in {".", ".."}:
+        raise click.BadParameter("Please provide a conversation filename.")
+    if not name.endswith(".json"):
+        name += ".json"
+    return config.config_dir / "history" / name
+
+
 def ensure_configured():
     """
     Checks for configuration. If missing, prints an error 
@@ -201,7 +212,7 @@ def configure():
     "--save",
     type=click.Path(path_type=Path),
     is_eager=False,
-    help="Path to save the conversation and resuse the same chat session later. Can be used to have past context in later conversations."
+    help="Conversation filename to save or resume in ~/.ask-log/history/"
 )
 def chat(log_file: Path, save: Path):
     """Start interactive chat session for log analysis"""
@@ -216,33 +227,26 @@ def chat(log_file: Path, save: Path):
             return
         
         # Initialize and start chat
-        analyzer = LogAnalyzer(str(log_file), str(save) if save else None)
+        save_path = _history_save_path(config, save) if save else None
+        analyzer = LogAnalyzer(str(log_file), str(save_path) if save_path else None)
         analyzer.start_chat()
         
-        # After chat ends, optionally save if not provided initially
-        if not save and len(analyzer.conversation_history) > 0:
-            if questionary.confirm("Do you want to save this conversation?", auto_enter=False).ask():
-                
-                history_dir = config.config_dir / "history"
-                history_dir.mkdir(parents=True, exist_ok=True)
-                
-                save_filename = f"chat_{log_file.stem}_{int(Path(log_file).stat().st_mtime)}.json"
-                
-                save_filename = questionary.text("Enter a filename (e.g., 'analysis_v1'): ").ask()
-                if not save_filename.endswith('.json'):
-                    save_filename += '.json'
-            
-                # Define path: {config_dir}/history/{filename}.json
-                history_dir = config.config_dir / "history"
-                save_path = history_dir / save_filename
-
+        if analyzer.conversation_history:
+            if save_path:
+                analyzer._save_conversation()
+                console.print(f"[green]✓ Conversation saved to: {save_path}[/green]")
+            elif questionary.confirm("Do you want to save this conversation?", auto_enter=False).ask():
+                save_filename = questionary.text(
+                    "Enter a filename (e.g., 'analysis_v1'): "
+                ).ask()
                 if save_filename:
-                    analyzer.save_path = Path(save_path)
+                    save_path = _history_save_path(config, Path(save_filename))
+                    analyzer.save_path = save_path
                     analyzer._save_conversation()
-                    console.print(f"[green]✓ Conversation saved to: {analyzer.save_path}[/green]")
+                    console.print(f"[green]✓ Conversation saved to: {save_path}[/green]")
         
     except Exception as e:
-        console.print(f"[red]✗ Error starting chat: {e}[/red]")
+        console.print(f"[red]✗ Error during chat: {e}[/red]")
 
 
 @main.command()

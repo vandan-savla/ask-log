@@ -102,25 +102,21 @@ class LogAnalyzer:
             console.print(f"[yellow]Warning: Could not load previous conversation: {e}[/yellow]")
     
     def _save_conversation(self):
-        """Save conversation to file (internal or user-specified)"""
+        """Save the conversation transcript to its JSON file."""
         if not self.save_path:
             return
-        
-        try:
-            self.save_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            data = {
-                'timestamp': datetime.now().isoformat(),
-                'log_file': str(self.log_file_path),
-                'session_id': self.session_id,
-                'conversation': self.conversation_history
-            }
-            
-            with open(self.save_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-            
-        except Exception as e:
-            console.print(f"[red]Warning: Could not save conversation: {e}[/red]")
+
+        self.save_path.parent.mkdir(parents=True, exist_ok=True)
+
+        data = {
+            'timestamp': datetime.now().isoformat(),
+            'log_file': str(self.log_file_path),
+            'session_id': self.session_id,
+            'conversation': self.conversation_history
+        }
+
+        with open(self.save_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
     
     
     def _handle_exit_save(self):
@@ -337,5 +333,5 @@ class LogAnalyzer:
         
         finally:
 
-            console.print("\n[yellow]Goodbye! Your conversation has been saved.[/yellow]")
+            console.print("\n[yellow]Chat session ended.[/yellow]")
             # self._handle_exit_save()
